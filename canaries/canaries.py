@@ -69,12 +69,16 @@ class canaries():
         elif isinstance(paths, list):
             for path in paths:
                 lib = canary(system, path)
+                if lib is not None:
+                    break
 
         elif isinstance(paths, dict):
             if system in paths:
                 ps = paths[system]
                 for path in [ps] if isinstance(ps, str) else ps:
                     lib = canary(system, path)
+                    if lib is not None:
+                        break
 
         return lib
 

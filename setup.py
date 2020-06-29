@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 setup(
     name="canaries",
-    version="0.1.0",
+    version="0.1.1",
     packages=["canaries",],
     install_requires=[],
     license="MIT",
