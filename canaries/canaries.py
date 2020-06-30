@@ -5,6 +5,7 @@ files compatible with the operating environment.
 """
 
 import doctest
+import sys
 import platform
 import ctypes
 
@@ -32,7 +33,8 @@ class canaries():
     def __init__(self, paths):
         """
         Attempt to load a library at one of the supplied
-        paths based on the platform.
+        paths based on the platform. Retains state in order
+        to record all exceptions and incorrect outputs.
         """
         if not isinstance(paths, (str, list, dict)):
             raise ValueError(
@@ -46,6 +48,8 @@ class canaries():
             )
 
         self.lib = None
+        self.exceptions = []
+        self.outputs = []
 
         system = platform.system()
         if isinstance(paths, str):
@@ -99,18 +103,37 @@ class canaries():
                     if isinstance(chirp, bytes):
                         chirp = chirp.decode()
 
+                    # Record the outputs.
+                    self.outputs.append((
+                        (system, path),
+                        (r, type(chirp), chirp)
+                    ))
+
                     # Check that results are correct.
                     if r != 0 or chirp != 'chirp':
                         lib = None
 
                 except:
                     lib = None
+                    self.exceptions.append((
+                        (system, path),
+                        (
+                            sys.exc_info()[0], sys.exc_info()[1],
+                            sys.exc_info()[2].tb_lineno
+                        )
+                    ))
         except:
-            pass
+            self.exceptions.append((
+                (system, path),
+                (
+                    sys.exc_info()[0], sys.exc_info()[1],
+                    sys.exc_info()[2].tb_lineno
+                )
+            ))
 
         return lib
 
-# Provide direct access to methods.
+# Provide direct access to static methods.
 canary = canaries.canary
 load = canaries.load
 
