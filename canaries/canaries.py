@@ -29,13 +29,27 @@ class canaries():
                 lib = ctypes.cdll.LoadLibrary(path)
 
             if lib is not None:
+                # Confirm that the library's exported functions work.
                 try:
-                    # Confirm that the library's exported functions work.
-                    treat = ctypes.create_string_buffer(bytes(map(ord, "treat")))
+                    # Build input parameters.
+                    treat = ctypes.create_string_buffer(5)
+                    for (i, c) in enumerate('treat'):
+                        try:
+                            treat[i] = c
+                        except:
+                            treat[i] = ord(c)
                     chirp = ctypes.create_string_buffer(5)
+
+                    # Invoke compatibility validation method.
                     r = lib.canary(chirp, treat)
-                    if r != 0 or\
-                       list(map(ord, chirp)) != list(map(ord, "chirp")):
+
+                    # Decode results.
+                    chirp = chirp.raw
+                    if isinstance(chirp, bytes):
+                        chirp = chirp.decode()
+
+                    # Check that results are correct.
+                    if r != 0 or chirp != 'chirp':
                         lib = None
                 except:
                     lib = None
