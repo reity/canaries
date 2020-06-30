@@ -19,16 +19,18 @@ class canaries():
         """
         Single-path wrapper method for convenience.
         """
-        object = canaries({'system':[path]})
-        return object.lib if hasattr(object, 'lib') else None
+        paths = {}
+        paths[system] = [path]
+        obj = canaries(paths)
+        return obj.lib if hasattr(obj, 'lib') else None
 
     @staticmethod
     def load(paths):
         """
         Wrapper method for backwards compatibility.
         """
-        object = canaries(paths)
-        return object.lib if hasattr(object, 'lib') else None
+        obj = canaries(paths)
+        return obj.lib if hasattr(obj, 'lib') else None
 
     def __init__(self, paths):
         """
