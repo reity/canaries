@@ -9,11 +9,54 @@ import sys
 import os.path
 import platform
 from ctypes import cdll, windll, create_string_buffer
+from multiprocessing import Pool
 
 class canaries():
     """
     Wrapper class for static methods.
     """
+
+    @staticmethod
+    def _xdll(path):
+        """
+        Load a library using the appropriate method.
+        """
+        system = platform.system()
+        xdll = windll if system == 'Windows' else cdll
+        return xdll.LoadLibrary(path)
+
+    @staticmethod
+    def _probe(lib):
+        """
+        Probe whether a library has a correctly implemented
+        verification method.
+        """
+        # Build input and output buffers.
+        treat = create_string_buffer(5)
+        for (i, c) in enumerate('treat'):
+            try:
+                treat[i] = c
+            except:
+                treat[i] = ord(c)
+        chirp = create_string_buffer(5)
+
+        # Attempt to invoke the canary method.
+        r = lib.canary(chirp, treat)
+
+        # Decode results.
+        chirp = chirp.raw
+        if isinstance(chirp, bytes):
+            chirp = chirp.decode()
+
+        # Check that results are correct.
+        return r == 0 and chirp == 'chirp'
+
+    @staticmethod
+    def _isolated(path):
+        """
+        Method to be used by isolated probe process.
+        """
+        return canaries._probe(canaries._xdll(path))
 
     @staticmethod
     def canary(system, path):
@@ -81,51 +124,13 @@ class canaries():
 
         # Only attempt to load object files that exist.
         if os.path.exists(path):
+            # Confirm that the library's exported functions work.
             try:
-                # Load the library.
-                xdll = windll if system == 'Windows' else cdll
-                lib = xdll.LoadLibrary(path)
-
-                if lib is not None:
-                    # Confirm that the library's exported functions work.
-                    try:
-                        # Build input parameters.
-                        treat = create_string_buffer(5)
-                        for (i, c) in enumerate('treat'):
-                            try:
-                                treat[i] = c
-                            except:
-                                treat[i] = ord(c)
-                        chirp = create_string_buffer(5)
-
-                        # Invoke compatibility validation method.
-                        r = lib.canary(chirp, treat)
-
-                        # Decode results.
-                        chirp = chirp.raw
-                        if isinstance(chirp, bytes):
-                            chirp = chirp.decode()
-
-                        # Record the outputs.
-                        self.outputs.append((
-                            (system, path),
-                            (r, type(chirp), chirp)
-                        ))
-
-                        # Check that results are correct.
-                        if r != 0 or chirp != 'chirp':
-                            lib = None
-
-                    except:
-                        lib = None
-                        self.exceptions.append((
-                            (system, path),
-                            (
-                                sys.exc_info()[0], sys.exc_info()[1],
-                                sys.exc_info()[2].tb_lineno
-                            )
-                        ))
-
+                # Invoke compatibility validation method.
+                with Pool(1) as p:
+                    task = p.imap(canaries._isolated, [path])
+                    if task.next(5): # Process has five seconds to succeedd.
+                        lib = canaries._xdll(path)
             except:
                 self.exceptions.append((
                     (system, path),
