@@ -4,7 +4,7 @@ canaries
 
 Python library for choosing and loading dynamic library files compatible with the operating environment.
 
-|pypi| |travis|
+|pypi| |travis| |coveralls|
 
 .. |pypi| image:: https://badge.fury.io/py/canaries.svg
    :target: https://badge.fury.io/py/canaries
@@ -12,6 +12,9 @@ Python library for choosing and loading dynamic library files compatible with th
 
 .. |travis| image:: https://travis-ci.com/reity/canaries.svg?branch=master
     :target: https://travis-ci.com/reity/canaries
+
+.. |coveralls| image:: https://coveralls.io/repos/github/reity/canaries/badge.svg?branch=master
+   :target: https://coveralls.io/github/reity/canaries?branch=master
 
 Purpose
 -------
