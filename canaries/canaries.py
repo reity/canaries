@@ -147,4 +147,4 @@ canary = canaries.canary
 load = canaries.load
 
 if __name__ == "__main__":
-    doctest.testmod()
+    doctest.testmod() # pragma: no cover
