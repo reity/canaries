@@ -28,8 +28,12 @@ The library can be imported in the usual way::
     import canaries
     from canaries import canaries
 
-Conventions
------------
+Testing and Conventions
+-----------------------
+All unit tests can be executed using `nose <https://nose.readthedocs.io/>`_::
+
+    nosetests
+
 Style conventions are enforced using `Pylint <https://www.pylint.org/>`_::
 
     pylint canaries
