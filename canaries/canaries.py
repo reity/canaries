@@ -83,7 +83,10 @@ class canaries():
         if os.path.exists(path):
             try:
                 # Load the library.
-                xdll = ctypes.windll if system == 'Windows' else cdll
+                xdll = cdll
+                if system == 'Windows':
+                    from ctypes import windll
+                    xdll = windll
                 lib = xdll.LoadLibrary(path)
 
                 if lib is not None:
