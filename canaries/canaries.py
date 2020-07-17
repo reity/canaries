@@ -10,7 +10,7 @@ import os.path
 import platform
 from ctypes import cdll, create_string_buffer
 
-class canaries():
+class canaries(object):
     """
     Wrapper class for static methods.
     """
