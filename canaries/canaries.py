@@ -8,7 +8,7 @@ import doctest
 import sys
 import os.path
 import platform
-from ctypes import cdll, windll, create_string_buffer
+from ctypes import cdll, create_string_buffer
 
 class canaries():
     """
@@ -83,7 +83,7 @@ class canaries():
         if os.path.exists(path):
             try:
                 # Load the library.
-                xdll = windll if system == 'Windows' else cdll
+                xdll = ctypes.windll if system == 'Windows' else cdll
                 lib = xdll.LoadLibrary(path)
 
                 if lib is not None:
