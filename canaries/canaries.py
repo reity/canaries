@@ -8,7 +8,7 @@ import doctest
 import sys
 import os.path
 import platform
-from ctypes import cdll, windll, create_string_buffer
+import ctypes
 
 class canaries():
     """
@@ -40,14 +40,14 @@ class canaries():
         to record all exceptions and incorrect outputs.
         """
         if not isinstance(paths, (str, list, dict)):
-            raise TypeError(
+            raise ValueError(
                 "input must be a string, list, or dictionary"
             )
 
         if isinstance(paths, dict) and\
            not all(isinstance(p, (str, list)) for p in paths.values()):
-            raise TypeError(
-                "path values in dictionary must be strings or lists of strings"
+            raise ValueError(
+                "path values in dictionary must be strings or lists"
             )
 
         self.lib = None
@@ -83,20 +83,22 @@ class canaries():
         if os.path.exists(path):
             try:
                 # Load the library.
-                xdll = windll if system == 'Windows' else cdll
-                lib = xdll.LoadLibrary(path)
+                if system == 'Windows':
+                    lib = ctypes.windll.LoadLibrary(path)
+                else:
+                    lib = ctypes.cdll.LoadLibrary(path)
 
                 if lib is not None:
                     # Confirm that the library's exported functions work.
                     try:
                         # Build input parameters.
-                        treat = create_string_buffer(5)
+                        treat = ctypes.create_string_buffer(5)
                         for (i, c) in enumerate('treat'):
                             try:
                                 treat[i] = c
                             except:
                                 treat[i] = ord(c)
-                        chirp = create_string_buffer(5)
+                        chirp = ctypes.create_string_buffer(5)
 
                         # Invoke compatibility validation method.
                         r = lib.canary(chirp, treat)
