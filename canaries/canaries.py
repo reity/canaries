@@ -8,7 +8,7 @@ import doctest
 import sys
 import os.path
 import platform
-from ctypes import cdll, windll, create_string_buffer
+from ctypes import cdll, create_string_buffer
 from multiprocessing import Pool
 
 class canaries():
@@ -22,7 +22,10 @@ class canaries():
         Load a library using the appropriate method.
         """
         system = platform.system()
-        xdll = windll if system == 'Windows' else cdll
+        xdll = cdll
+        if system == 'Windows':
+            # pylint: disable=import-outside-toplevel
+            from ctypes import windll as xdll # pragma: no cover
         return xdll.LoadLibrary(path)
 
     @staticmethod
