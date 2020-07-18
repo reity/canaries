@@ -2,14 +2,32 @@ notifications:
   email:
     on_success: never
     on_failure: always
-language: python
-python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
-cache: pip
-install:
-  - pip install pylint
-  - pip install .
+matrix:
+  include:
+    - os: linux
+      language: python
+      python:
+        - "3.6"
+        - "3.7"
+        - "3.8"
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.8
+          packages:
+            - g++-6
+      before_install:
+        - cd test
+        - mkdir target
+        - make all
+        - cd ..
+      install:
+        - pip install pylint
+        - pip install coveralls
+        - pip install .
+      after_success:
+        - coveralls
 script:
   - pylint canaries
+  - nosetests
