@@ -62,24 +62,24 @@ class canaries():
         return canaries._probe(canaries._xdll(path))
 
     @staticmethod
-    def canary(system, path):
+    def canary(system, path, probe=False):
         """
         Single-path wrapper method for convenience.
         """
         paths = {}
         paths[system] = [path]
-        obj = canaries(paths)
+        obj = canaries(paths, probe)
         return obj.lib if hasattr(obj, 'lib') else None
 
     @staticmethod
-    def load(paths):
+    def load(paths, probe=False):
         """
         Wrapper method for backwards compatibility.
         """
-        obj = canaries(paths)
+        obj = canaries(paths, probe)
         return obj.lib if hasattr(obj, 'lib') else None
 
-    def __init__(self, paths):
+    def __init__(self, paths, probe=False):
         """
         Attempt to load a library at one of the supplied
         paths based on the platform. Retains state in order
@@ -102,11 +102,11 @@ class canaries():
 
         system = platform.system()
         if isinstance(paths, str):
-            self.lib = self._canary(system, paths)
+            self.lib = self._canary(system, paths, probe)
 
         elif isinstance(paths, list):
             for path in paths:
-                self.lib = self._canary(system, path)
+                self.lib = self._canary(system, path, probe)
                 if self.lib is not None:
                     break
 
@@ -114,11 +114,11 @@ class canaries():
             if system in paths:
                 ps = paths[system]
                 for path in [ps] if isinstance(ps, str) else ps:
-                    self.lib = self._canary(system, path)
+                    self.lib = self._canary(system, path, probe)
                     if self.lib is not None:
                         break
 
-    def _canary(self, system, path):
+    def _canary(self, system, path, probe=False):
         """
         Attempt to load a library file at the supplied path
         and verify that its exported functions work.
@@ -129,11 +129,17 @@ class canaries():
         if os.path.exists(path):
             # Confirm that the library's exported functions work.
             try:
-                # Invoke compatibility validation method.
-                with Pool(1) as p:
-                    task = p.imap(canaries._isolated, [path])
-                    if task.next(5): # Process has five seconds to succeedd.
-                        lib = canaries._xdll(path)
+                # Invoke compatibility validation method
+                # only if instructed to do so.
+                if not probe:
+                    lib = canaries._xdll(path)
+                else:
+                    # Perform probe in a subprocess to isolate
+                    # segmentation faults and other runtime errors.
+                    with Pool(1) as p:
+                        task = p.imap(canaries._isolated, [path])
+                        if task.next(5): # Process has five seconds to succeed.
+                            lib = canaries._xdll(path)
             except:
                 self.exceptions.append((
                     (system, path),
