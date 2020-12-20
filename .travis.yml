@@ -27,30 +27,18 @@ matrix:
       after_success:
         - coveralls
     - os: osx
-      language: generic
-      before_cache:
-        - brew cleanup
-        - find /usr/local/Homebrew \! -regex ".+\.git.+" -delete
-      cache:
-        ccache: true
-        directories:
-          - $HOME/Library/Caches/Homebrew
-          - /usr/local/Homebrew
+      osx_image: xcode10.2
+      language: shell
       before_install:
-        - brew update
-        - brew install ccache
-        - brew install openssl readline
-        - brew upgrade python@3.8
-        - sudo python3.8 -m pip install -U pip
-        - sudo python3.8 -m pip install setuptools
         - cd test
         - mkdir target
         - make all
         - cd ..
       install:
-        - sudo python3.8 -m pip install pylint
-        - sudo python3.8 -m pip install nose
-        - sudo python3.8 -m pip install .
+        - sudo python3 -m pip install pylint
+        - sudo python3 -m pip install coverage
+        - sudo python3 -m pip install nose
+        - sudo python3 -m pip install .
     - os: windows
       language: sh
       before_install:
@@ -63,7 +51,7 @@ matrix:
       install:
         - pip install pylint
         - pip install nose
-        - pip install coveralls
+        - pip install coverage
         - pip install .
 script:
   - pylint canaries
